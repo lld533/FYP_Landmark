@@ -72,6 +72,47 @@ def model_desktop_gap(x, data_format='channels_last'):
     
     return x
 
+# https://stackoverflow.com/questions/36388431/tensorflow-multi-dimension-argmax
+def argmax_2d(tensor):
+    # flatten the Tensor along the height and width axes
+    flat_tensor = tf.reshape(tensor, 
+                             (-1, int(tensor.shape[1]*tensor.shape[2]), tensor.shape[3]))
 
-x = tf.placeholder(tf.float32, [None, 96,96,1])
-y = model_desktop_gap(x)
+    # argmax of the flat tensor
+    argmax = tf.cast(tf.argmax(flat_tensor, axis=1), tf.int32)
+
+    # convert indexes into 2D coordinates
+    argmax_x = argmax // tf.shape(tensor)[2]
+    argmax_y = argmax % tf.shape(tensor)[2]
+
+    # concat and return coordinates
+    return tf.concat([argmax_x, argmax_y], axis=-1)
+
+def heatmap2coords(heatmaps):
+    # Input:
+    # heatmap: [N, H, W, K], N: batch size, H: height, W: width, K: #keypoints
+    #
+    # Output
+    # coords: [N, 2K], N: batch size, K: #keypoints organized by x_1..x_Ky_1..y_K
+    return tf.cast(argmax_2d(heatmaps), dtype=tf.float32)
+
+"""
+Test code
+"""
+## function model_desktop_gap
+#imgs = tf.placeholder(tf.float32, [None, 96,96, 3])
+#prediction_heatmap = model_desktop_gap(imgs)
+
+## function heatmap2coords
+#np_heatmap = np.random.rand(1,96,96,68)
+#pseudo_heatmap = tf.convert_to_tensor(np_heatmap, dtype=tf.float32)
+#prediction_coords = heatmap2coords(pseudo_heatmap)
+
+#print("="*32)
+#print("np_heatmap:")
+#print(np_heatmap)
+#print("="*32)
+#print("coords:")
+
+#with tf.Session() as sess:
+    #print(sess.run(prediction_coords))
