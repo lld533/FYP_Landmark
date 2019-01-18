@@ -82,8 +82,8 @@ def argmax_2d(tensor):
     argmax = tf.cast(tf.argmax(flat_tensor, axis=1), tf.int32)
 
     # convert indexes into 2D coordinates
-    argmax_x = argmax // tf.shape(tensor)[2]
-    argmax_y = argmax % tf.shape(tensor)[2]
+    argmax_y = argmax // tf.shape(tensor)[2]
+    argmax_x = argmax % tf.shape(tensor)[2]
 
     # concat and return coordinates
     return tf.concat([argmax_x, argmax_y], axis=-1)
